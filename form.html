@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DCH Clinical Chart Form</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.08);
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+      color: #1f3c88;
+    }
+
+    .hospital-header {
+      text-align: center;
+      border-bottom: 2px solid #ccc;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .top-link {
+      text-align: right;
+      margin-bottom: 15px;
+    }
+
+    .top-link a {
+      text-decoration: none;
+      color: #0d6efd;
+      font-weight: bold;
+    }
+
+    .section {
+      border: 1px solid #dcdcdc;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      background: #fafafa;
+    }
+
+    .section h3 {
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 8px;
+      margin-bottom: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .required-label::after {
+      content: " *";
+      color: #dc3545;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #bbb;
+      border-radius: 5px;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .input-error {
+      border: 2px solid #dc3545 !important;
+      background: #fff7f7;
+    }
+
+    .error-message {
+      color: #dc3545;
+      font-size: 13px;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .group-error {
+      border: 2px solid #dc3545;
+      border-radius: 6px;
+      padding: 8px;
+      background: #fff7f7;
+    }
+
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 8px;
+    }
+
+    .check-grid label,
+    .radio-inline label {
+      font-weight: normal;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .radio-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-top: 5px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      margin-top: 10px;
+    }
+
+    table th, table td {
+      border: 1px solid #bbb;
+      padding: 6px;
+      text-align: center;
+      vertical-align: top;
+      font-size: 13px;
+    }
+
+    table textarea {
+      border: none;
+      min-height: 100px;
+    }
+
+    .subheading {
+      font-weight: bold;
+      color: #0b5394;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.hospital-logo {
+  width: 130px;
+  height: 130px;
+  object-fit: contain;
+}
+
+.hospital-text {
+  text-align: center;
+}
+
+    .btn-save { background: #198754; }
+    .btn-clear { background: #6c757d; }
+  </style>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1f3c88">
+</head>
+<body>
+  <div class="container">
+    <div class="top-link">
+      <a href="index.html">Patient Selector</a> |
+      <a href="vital-signs.html">Vital Signs</a> |
+      <a href="laboratory-reports.html">Laboratory Reports</a> |
+      <a href="ivf-sheet.html">IVF Sheet</a> |
+      <a href="intake-output.html">Intake/Output</a> |
+      <a href="nurses-notes.html">Nurse's Notes</a> |
+      <a href="medication-sheet.html">Medication Sheet</a> |
+      <a href="downward-referral.html">Referral</a>
+      <a href="records.html">View Saved Records</a> |
+    </div>
+
+<div class="hospital-header">
+  <div class="header-flex">
+    
+    <img src="logo.png" alt="Hospital Logo" class="hospital-logo">
+
+    <div class="hospital-text">
+      <h1>Doctors Community Hospital</h1>
+      <p>P-1 Poblacion, Mawab, Davao de Oro</p>
+      <h2>Clinical Chart Form</h2>
+    </div>
+
+  </div>
+</div>
+
+    <form id="chartForm" novalidate>
+      <div class="section">
+        <h3>CLINICAL HISTORY</h3>
+        <div class="grid">
+          <div>
+            <label for="patientName" class="required-label">Patient's Name</label>
+            <input type="text" id="patientName">
+            <div class="error-message" id="patientNameError">This Field is Required</div>
+          </div>
+          <div>
+            <label for="age" class="required-label">Age</label>
+            <input type="number" id="age">
+            <div class="error-message" id="ageError">This Field is Required</div>
+          </div>
+          <div>
+            <label for="sex" class="required-label">Sex</label>
+            <select id="sex">
+              <option value="">Select</option>
+              <option>Male</option>
+              <option>Female</option>
+            </select>
+            <div class="error-message" id="sexError">This Field is Required</div>
+          </div>
+          <div>
+            <label for="roomBedNo">Room & Bed No.</label>
+            <input type="text" id="roomBedNo">
+          </div>
+          <div>
+            <label for="attendingPhysician" class="required-label">Attending Physician</label>
+            <input type="text" id="attendingPhysician">
+            <div class="error-message" id="attendingPhysicianError">This Field is Required</div>
+          </div>
+          <div>
+            <label for="dateAdmitted" class="required-label">Date Admitted</label>
+            <input type="date" id="dateAdmitted">
+            <div class="error-message" id="dateAdmittedError">This Field is Required</div>
+          </div>
+          <div>
+            <label for="caseNo">Case No.</label>
+            <input type="text" id="caseNo">
+          </div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <label for="chiefComplaint" class="required-label">Chief Complaint</label>
+          <textarea id="chiefComplaint"></textarea>
+          <div class="error-message" id="chiefComplaintError">This Field is Required</div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <label class="required-label">Triage Level</label>
+          <div class="radio-inline" id="triageLevelGroup">
+            <label><input type="radio" name="triageLevel" value="1"> 1</label>
+            <label><input type="radio" name="triageLevel" value="2"> 2</label>
+            <label><input type="radio" name="triageLevel" value="3"> 3</label>
+            <label><input type="radio" name="triageLevel" value="4"> 4</label>
+            <label><input type="radio" name="triageLevel" value="5"> 5</label>
+          </div>
+          <div class="error-message" id="triageLevelError">This Field is Required</div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <label for="historyPresentIllness" class="required-label">History of Present Illness</label>
+          <textarea id="historyPresentIllness"></textarea>
+          <div class="error-message" id="historyPresentIllnessError">This Field is Required</div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <label for="familyPersonalSocialHistory">Family History / Personal / Social History</label>
+          <textarea id="familyPersonalSocialHistory"></textarea>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>PAST MEDICAL HISTORY <small>(Optional)</small></h3>
+        <div class="check-grid">
+          <label><input type="checkbox" name="pastMedicalHistory" value="Hypertension"> Hypertension</label>
+          <label><input type="checkbox" name="pastMedicalHistory" value="Diabetes Mellitus"> Diabetes Mellitus</label>
+          <label><input type="checkbox" name="pastMedicalHistory" value="Asthma"> Asthma</label>
+          <label><input type="checkbox" name="pastMedicalHistory" value="Cancer"> Cancer</label>
+          <label><input type="checkbox" name="pastMedicalHistory" value="Smoker"> Smoker</label>
+          <label><input type="checkbox" name="pastMedicalHistory" value="Alcohol Beverage Drinker"> Alo. Bev. Drunker</label>
+        </div>
+
+        <div class="grid" style="margin-top:12px;">
+          <div>
+            <label for="previousHospitalization">Previous Hospitalization</label>
+            <input type="text" id="previousHospitalization">
+          </div>
+          <div>
+            <label for="pastMedicalHistoryOthers">Others</label>
+            <input type="text" id="pastMedicalHistoryOthers">
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>OB / GYN HISTORY <small>(Optional)</small></h3>
+        <div class="grid">
+          <div><label for="obgynG">G</label><input type="text" id="obgynG"></div>
+          <div><label for="obgynP">P</label><input type="text" id="obgynP"></div>
+          <div><label for="obgynPattern">( - - - )</label><input type="text" id="obgynPattern"></div>
+          <div><label for="lmp">LMP</label><input type="text" id="lmp"></div>
+          <div><label for="obgynNA">NA</label><input type="text" id="obgynNA"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3 class="required-label">Pertinent Signs and Symptoms on Admission</h3>
+        <div class="check-grid" id="symptomsGroup">
+          <label><input type="checkbox" name="symptoms" value="Altered mental sensorium"> Altered mental sensorium</label>
+          <label><input type="checkbox" name="symptoms" value="Diarrhea"> Diarrhea</label>
+          <label><input type="checkbox" name="symptoms" value="Hematemesis"> Hematemesis</label>
+          <label><input type="checkbox" name="symptoms" value="Palpitations"> Palpitations</label>
+          <label><input type="checkbox" name="symptoms" value="Abdominal cramp/pain"> Abdominal cramp / pain</label>
+          <label><input type="checkbox" name="symptoms" value="Dizziness"> Dizziness</label>
+          <label><input type="checkbox" name="symptoms" value="Hematuria"> Hematuria</label>
+          <label><input type="checkbox" name="symptoms" value="Seizures"> Seizures</label>
+          <label><input type="checkbox" name="symptoms" value="Anorexia"> Anorexia</label>
+          <label><input type="checkbox" name="symptoms" value="Dysphagia"> Dysphagia</label>
+          <label><input type="checkbox" name="symptoms" value="Hemoptysis"> Hemoptysis</label>
+          <label><input type="checkbox" name="symptoms" value="Skin Rashes"> Skin Rashes</label>
+          <label><input type="checkbox" name="symptoms" value="Bleeding Gums"> Bleeding Gums</label>
+          <label><input type="checkbox" name="symptoms" value="Dyspnea"> Dyspnea</label>
+          <label><input type="checkbox" name="symptoms" value="Irritability"> Irritability</label>
+          <label><input type="checkbox" name="symptoms" value="Stool Bloody/Black tarry/mucoid"> Stool, Bloody/ Black tarry/ mucoid</label>
+          <label><input type="checkbox" name="symptoms" value="Body Weakness"> Body Weakness</label>
+          <label><input type="checkbox" name="symptoms" value="Dysuria"> Dysuria</label>
+          <label><input type="checkbox" name="symptoms" value="Jaundice"> Jaundice</label>
+          <label><input type="checkbox" name="symptoms" value="Sweating"> Sweating</label>
+          <label><input type="checkbox" name="symptoms" value="Blurring of Vision"> Blurring of Vision</label>
+          <label><input type="checkbox" name="symptoms" value="Epistaxis"> Epistaxis</label>
+          <label><input type="checkbox" name="symptoms" value="Lower Extremity edema"> Lower Extremity edema</label>
+          <label><input type="checkbox" name="symptoms" value="Urgency"> Urgency</label>
+          <label><input type="checkbox" name="symptoms" value="Chest Pain/discomfort"> Chest Pain/ discomfort</label>
+          <label><input type="checkbox" name="symptoms" value="Fever"> Fever</label>
+          <label><input type="checkbox" name="symptoms" value="Myalgia"> Myalgia</label>
+          <label><input type="checkbox" name="symptoms" value="Vomiting"> Vomiting</label>
+          <label><input type="checkbox" name="symptoms" value="Constipation"> Constipation</label>
+          <label><input type="checkbox" name="symptoms" value="Frequency of Urination"> Frequency of Urination</label>
+          <label><input type="checkbox" name="symptoms" value="Orthopnea"> Orthopnea</label>
+          <label><input type="checkbox" name="symptoms" value="Weight Loss"> Weight Loss</label>
+          <label><input type="checkbox" name="symptoms" value="Cough"> Cough</label>
+          <label><input type="checkbox" name="symptoms" value="Headache"> Headache</label>
+          <label><input type="checkbox" name="symptoms" value="Pain" id="painCheckbox"> Pain</label>
+          <label><input type="checkbox" name="symptoms" value="Others" id="symptomOthersCheckbox"> Others</label>
+        </div>
+        <div class="error-message" id="symptomsError">This Field is Required</div>
+
+        <div class="grid" style="margin-top:12px;">
+          <div>
+            <label for="painSite">Pain (site)</label>
+            <input type="text" id="painSite" disabled>
+            <div class="error-message" id="painSiteError">This Field is Required</div>
+          </div>
+          <div>
+            <label for="otherSymptoms">If Others, please specify</label>
+            <input type="text" id="otherSymptoms" disabled>
+            <div class="error-message" id="otherSymptomsError">This Field is Required</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Physical Examination on Admission</h3>
+
+        <div class="subheading required-label">General Survey</div>
+        <div class="radio-inline" id="generalSurveyGroup">
+          <label><input type="radio" name="generalSurvey" value="Awake and alert"> Awake and alert</label>
+          <label><input type="radio" name="generalSurvey" value="Altered Sensorium"> Altered Sensorium</label>
+        </div>
+        <div class="error-message" id="generalSurveyError">This Field is Required</div>
+
+        <div style="margin-top:10px;">
+          <label for="alteredSensoriumDetails">Altered Sensorium Details</label>
+          <input type="text" id="alteredSensoriumDetails">
+        </div>
+
+        <div class="subheading required-label">Vital Signs</div>
+        <div class="grid">
+          <div><label for="vitalBP" class="required-label">BP</label><input type="text" id="vitalBP"><div class="error-message" id="vitalBPError">This Field is Required</div></div>
+          <div><label for="vitalHR" class="required-label">HR</label><input type="text" id="vitalHR"><div class="error-message" id="vitalHRError">This Field is Required</div></div>
+          <div><label for="vitalRR" class="required-label">RR</label><input type="text" id="vitalRR"><div class="error-message" id="vitalRRError">This Field is Required</div></div>
+          <div><label for="vitalTemp" class="required-label">Temp</label><input type="text" id="vitalTemp"><div class="error-message" id="vitalTempError">This Field is Required</div></div>
+          <div><label for="vitalWeight" class="required-label">Weight</label><input type="text" id="vitalWeight"><div class="error-message" id="vitalWeightError">This Field is Required</div></div>
+          <div><label for="vitalHeight" class="required-label">Height</label><input type="text" id="vitalHeight"><div class="error-message" id="vitalHeightError">This Field is Required</div></div>
+          <div><label for="vitalPFR" class="required-label">PFR</label><input type="text" id="vitalPFR"><div class="error-message" id="vitalPFRError">This Field is Required</div></div>
+        </div>
+
+        <div class="subheading required-label">HEENT</div>
+        <div class="check-grid" id="heentGroup">
+          <label><input type="checkbox" name="heent" value="Essentially Normal"> Essentially Normal</label>
+          <label><input type="checkbox" name="heent" value="Abnormal pupillary Reaction"> Abnormal pupillary Reaction</label>
+          <label><input type="checkbox" name="heent" value="Cervical Lymphadenopathy"> Cervical Lymphadenopathy</label>
+          <label><input type="checkbox" name="heent" value="Dry Mucous Membrane"> Dry Mucous Membrane</label>
+          <label><input type="checkbox" name="heent" value="Icteric Sclerae"> Icteric Sclerae</label>
+          <label><input type="checkbox" name="heent" value="Pale Conjunctive"> Pale Conjunctive</label>
+          <label><input type="checkbox" name="heent" value="Sunken Eyeballs"> Sunken Eyeballs</label>
+          <label><input type="checkbox" name="heent" value="Sunken Fontanel"> Sunken Fontanel</label>
+          <label><input type="checkbox" id="heentOthersCheckbox"> Others</label>
+        </div>
+        <div class="error-message" id="heentError">This Field is Required</div>
+        <div style="margin-top:10px;">
+          <label for="heentOthers">HEENT Others</label>
+          <input type="text" id="heentOthers" disabled>
+        </div>
+
+        <div class="subheading required-label">Chest / Lungs</div>
+        <div class="check-grid" id="chestLungsGroup">
+          <label><input type="checkbox" name="chestLungs" value="Essentially Normal"> Essentially Normal</label>
+          <label><input type="checkbox" name="chestLungs" value="Symmetrical chest expansion"> Symmetrical chest expansion</label>
+          <label><input type="checkbox" name="chestLungs" value="Decreased Breath sounds"> Decreased Breath sounds</label>
+          <label><input type="checkbox" name="chestLungs" value="Wheezes"> Wheezes</label>
+          <label><input type="checkbox" name="chestLungs" value="Lumps/s over breast/s"> Lumps/s over breast/s</label>
+          <label><input type="checkbox" name="chestLungs" value="Rales/Crackles/rhonchi"> Rales/ Crackles/ rhonchi</label>
+          <label><input type="checkbox" name="chestLungs" value="Intercostal Rib/clavicular retraction"> Intercostal Rib/ clavicular retraction</label>
+          <label><input type="checkbox" id="chestOthersCheckbox"> Others</label>
+        </div>
+        <div class="error-message" id="chestLungsError">This Field is Required</div>
+        <div style="margin-top:10px;">
+          <label for="chestLungsOthers">Chest/Lungs Others</label>
+          <input type="text" id="chestLungsOthers" disabled>
+        </div>
+
+        <div class="subheading required-label">CVS</div>
+        <div class="check-grid" id="cvsGroup">
+          <label><input type="checkbox" name="cvs" value="Essentially Normal"> Essentially Normal</label>
+          <label><input type="checkbox" name="cvs" value="Displaced apex beat"> Displaced apex beat</label>
+          <label><input type="checkbox" name="cvs" value="Heaves and/or thrills"> Heaves and / or thrills</label>
+          <label><input type="checkbox" name="cvs" value="Pericardial bulge"> Pericardial bulge</label>
+          <label><input type="checkbox" name="cvs" value="Irregular rhythm"> Irregular rhythm</label>
+          <label><input type="checkbox" name="cvs" value="Muffled heart sound"> Muffled heart sound</label>
+          <label><input type="checkbox" name="cvs" value="Murmur"> Murmur</label>
+          <label><input type="checkbox" id="cvsOthersCheckbox"> Others</label>
+        </div>
+        <div class="error-message" id="cvsError">This Field is Required</div>
+        <div style="margin-top:10px;">
+          <label for="cvsOthers">CVS Others</label>
+          <input type="text" id="cvsOthers" disabled>
+        </div>
+
+        <div class="subheading required-label">Abdomen</div>
+        <div class="check-grid" id="abdomenGroup">
+          <label><input type="checkbox" name="abdomen" value="Essentially Normal"> Essentially Normal</label>
+          <label><input type="checkbox" name="abdomen" value="Abdominal rigidity"> Abdominal rigidity</label>
+          <label><input type="checkbox" name="abdomen" value="Abdomen tenderness"> Abdomen tenderness</label>
+          <label><input type="checkbox" name="abdomen" value="Hyperactive bowel sounds"> Hyperactive bowel sounds</label>
+          <label><input type="checkbox" name="abdomen" value="Palpable mass/es"> Palpable mass (es)</label>
+          <label><input type="checkbox" name="abdomen" value="Tympanitic/dull abdomen"> Tympanitic/ dull abdomen</label>
+          <label><input type="checkbox" name="abdomen" value="Uterine Contraction"> Uterine Contraction</label>
+          <label><input type="checkbox" id="abdomenOthersCheckbox"> Others</label>
+        </div>
+        <div class="error-message" id="abdomenError">This Field is Required</div>
+        <div style="margin-top:10px;">
+          <label for="abdomenOthers">Abdomen Others</label>
+          <input type="text" id="abdomenOthers" disabled>
+        </div>
+
+        <div class="subheading required-label">GU (IE)</div>
+        <div class="check-grid" id="guGroup">
+          <label><input type="checkbox" name="gu" value="Essentially Normal"> Essentially Normal</label>
+          <label><input type="checkbox" name="gu" value="Blood Stained in exam finger"> Blood Stained in exam finger</label>
+          <label><input type="checkbox" name="gu" value="Cervical Dilation"> Cervical Dilation</label>
+          <label><input type="checkbox" name="gu" value="Presence of abnormal Discharge"> Presence of abnormal Discharge</label>
+          <label><input type="checkbox" id="guOthersCheckbox"> Others</label>
+        </div>
+        <div class="error-message" id="guError">This Field is Required</div>
+        <div style="margin-top:10px;">
+          <label for="guOthers">GU Others</label>
+          <input type="text" id="guOthers" disabled>
+        </div>
+
+        <div class="subheading required-label">Skin / Extremities</div>
+        <div class="check-grid" id="skinExtGroup">
+          <label><input type="checkbox" name="skinExt" value="Essentially Normal"> Essentially Normal</label>
+          <label><input type="checkbox" name="skinExt" value="Clubbing"> Clubbing</label>
+          <label><input type="checkbox" name="skinExt" value="Cold Clammy Skin"> Cold Clammy Skin</label>
+          <label><input type="checkbox" name="skinExt" value="Cyanosis/mottled skin"> Cyanosis/ mottled skin</label>
+          <label><input type="checkbox" name="skinExt" value="Edema/Swelling"> Edema / Swelling</label>
+          <label><input type="checkbox" name="skinExt" value="Decreased mobility"> Decreased mobility</label>
+          <label><input type="checkbox" name="skinExt" value="Pale Nail beds"> Pale Nail beds</label>
+          <label><input type="checkbox" name="skinExt" value="Poor Skin Turgor"> Poor Skin Turgor</label>
+          <label><input type="checkbox" name="skinExt" value="Rashes/Petechiae"> Rashes / Petechiae</label>
+          <label><input type="checkbox" name="skinExt" value="Weak Pulses"> weak Pulses</label>
+          <label><input type="checkbox" id="skinExtOthersCheckbox"> Others</label>
+        </div>
+        <div class="error-message" id="skinExtError">This Field is Required</div>
+        <div style="margin-top:10px;">
+          <label for="skinExtOthers">Skin / Extremities Others</label>
+          <input type="text" id="skinExtOthers" disabled>
+        </div>
+
+        <div class="subheading required-label">Neuro-Exam</div>
+        <div class="check-grid" id="neuroGroup">
+          <label><input type="checkbox" name="neuro" value="Essentially Normal"> Essentially Normal</label>
+          <label><input type="checkbox" name="neuro" value="Abnormal gait"> Abnormal gait</label>
+          <label><input type="checkbox" name="neuro" value="Abnormal Position sense"> Abnormal Position sense</label>
+          <label><input type="checkbox" name="neuro" value="Abnormal/decreased sensation"> Abnormal/decreased sensation</label>
+          <label><input type="checkbox" name="neuro" value="Abnormal reflex/es"> Abnormal reflex (es)</label>
+          <label><input type="checkbox" name="neuro" value="Poor/Altered memory"> Poor / Altered memory</label>
+          <label><input type="checkbox" name="neuro" value="Poor muscle tone/strength"> Poor muscle tone/ strength</label>
+          <label><input type="checkbox" name="neuro" value="Poor Coordination"> Poor Coordination</label>
+          <label><input type="checkbox" id="neuroOthersCheckbox"> Others</label>
+        </div>
+        <div class="error-message" id="neuroError">This Field is Required</div>
+        <div style="margin-top:10px;">
+          <label for="neuroOthers">Neuro Others</label>
+          <input type="text" id="neuroOthers" disabled>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Impression / Progress Notes / Medical Order</h3>
+        <div style="margin-bottom:12px;">
+          <label for="impression" class="required-label">Impression</label>
+          <textarea id="impression"></textarea>
+          <div class="error-message" id="impressionError">This Field is Required</div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40%;">Date & Time Progress Notes <span style="color:#dc3545;">*</span></th>
+              <th style="width:60%;">Medical Order <span style="color:#dc3545;">*</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><textarea id="progressNotes"></textarea><div class="error-message" id="progressNotesError">This Field is Required</div></td>
+              <td><textarea id="medicalOrder"></textarea><div class="error-message" id="medicalOrderError">This Field is Required</div></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="grid" style="margin-top:12px;">
+          <div>
+            <label for="preparedBy" class="required-label">Prepared By</label>
+            <input type="text" id="preparedBy">
+            <div class="error-message" id="preparedByError">This Field is Required</div>
+          </div>
+          <div>
+            <label for="preparedDate" class="required-label">Date</label>
+            <input type="date" id="preparedDate">
+            <div class="error-message" id="preparedDateError">This Field is Required</div>
+          </div>
+          <div>
+            <label for="preparedTime" class="required-label">Time</label>
+            <input type="time" id="preparedTime">
+            <div class="error-message" id="preparedTimeError">This Field is Required</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn-save">Save Record</button>
+        <button type="button" class="btn-clear" id="clearBtn">Clear Form</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="app.js"></script>
+<script>
+    const STORAGE_KEY = "dchClinicalChartRecords";
+    const EDIT_KEY = "dchClinicalChartEditIndex";
+    const ACTIVE_KEY = "dchActivePatientRecord";
+    let editIndex = null;
+
+    const FORM_FIELDS = [
+      "patientName", "age", "sex", "roomBedNo", "attendingPhysician", "dateAdmitted", "caseNo",
+      "chiefComplaint", "historyPresentIllness", "familyPersonalSocialHistory",
+      "previousHospitalization", "pastMedicalHistoryOthers",
+      "obgynG", "obgynP", "obgynPattern", "lmp", "obgynNA",
+      "painSite", "otherSymptoms", "alteredSensoriumDetails",
+      "vitalBP", "vitalHR", "vitalRR", "vitalTemp", "vitalWeight", "vitalHeight", "vitalPFR",
+      "heentOthers", "chestLungsOthers", "cvsOthers", "abdomenOthers", "guOthers", "skinExtOthers", "neuroOthers",
+      "impression", "progressNotes", "medicalOrder", "preparedBy", "preparedDate", "preparedTime"
+    ];
+
+    const CHECKBOX_GROUPS = [
+      "pastMedicalHistory", "symptoms", "heent", "chestLungs", "cvs", "abdomen", "gu", "skinExt", "neuro"
+    ];
+
+    const RADIO_GROUPS = ["triageLevel", "generalSurvey"];
+
+    const REQUIRED_TEXT_FIELDS = [
+      "patientName", "age", "sex", "attendingPhysician", "dateAdmitted", "chiefComplaint", "historyPresentIllness",
+      "vitalBP", "vitalHR", "vitalRR", "vitalTemp", "vitalWeight", "vitalHeight", "vitalPFR",
+      "impression", "progressNotes", "medicalOrder", "preparedBy", "preparedDate", "preparedTime"
+    ];
+
+    const REQUIRED_RADIO_GROUPS = ["triageLevel", "generalSurvey"];
+    const REQUIRED_CHECKBOX_GROUPS = ["symptoms", "heent", "chestLungs", "cvs", "abdomen", "gu", "skinExt", "neuro"];
+
+    function getRecords() {
+      return window.DCHData ? window.DCHData.getAllRecords() : (JSON.parse(localStorage.getItem(STORAGE_KEY)) || []);
+    }
+
+    function saveRecords(records) {
+      if (window.DCHData) { window.DCHData.saveAllRecords(records); }
+      else { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+    }
+
+    function getFieldValue(id) {
+      const element = document.getElementById(id);
+      return element ? element.value.trim() : "";
+    }
+
+    function setFieldValue(id, value) {
+      const element = document.getElementById(id);
+      if (element) element.value = value || "";
+    }
+
+    function getCheckboxValues(name) {
+      return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
+    }
+
+    function setCheckboxValues(name, values) {
+      document.querySelectorAll(`input[name="${name}"]`).forEach(cb => {
+        cb.checked = values.includes(cb.value);
+      });
+    }
+
+    function getRadioValue(name) {
+      const selected = document.querySelector(`input[name="${name}"]:checked`);
+      return selected ? selected.value : "";
+    }
+
+    function setRadioValue(name, value) {
+      document.querySelectorAll(`input[name="${name}"]`).forEach(radio => {
+        radio.checked = radio.value === value;
+      });
+    }
+
+    function showError(idOrGroup, message = "This Field is Required") {
+      const field = document.getElementById(idOrGroup);
+      const error = document.getElementById(idOrGroup + "Error");
+      const group = document.getElementById(idOrGroup + "Group");
+
+      if (field) field.classList.add("input-error");
+      if (group) group.classList.add("group-error");
+      if (error) {
+        error.textContent = message;
+        error.style.display = "block";
+      }
+    }
+
+    function clearErrors() {
+      document.querySelectorAll(".input-error").forEach(el => el.classList.remove("input-error"));
+      document.querySelectorAll(".group-error").forEach(el => el.classList.remove("group-error"));
+      document.querySelectorAll(".error-message").forEach(el => el.style.display = "none");
+    }
+
+    function validateRequiredFields() {
+      clearErrors();
+      let isValid = true;
+      let firstInvalid = null;
+
+      REQUIRED_TEXT_FIELDS.forEach(id => {
+        const field = document.getElementById(id);
+
+        if (!field || field.value.trim() === "") {
+          showError(id);
+
+          if (!firstInvalid) firstInvalid = field;
+          isValid = false;
+        }
+      });
+
+      REQUIRED_RADIO_GROUPS.forEach(name => {
+        const selected = document.querySelector(`input[name="${name}"]:checked`);
+
+        if (!selected) {
+          showError(name);
+
+          if (!firstInvalid) firstInvalid = document.getElementById(name + "Group");
+          isValid = false;
+        }
+      });
+
+      REQUIRED_CHECKBOX_GROUPS.forEach(name => {
+        const checked = document.querySelectorAll(`input[name="${name}"]:checked`);
+
+        if (checked.length === 0) {
+          showError(name);
+
+          if (!firstInvalid) firstInvalid = document.getElementById(name + "Group");
+          isValid = false;
+        }
+      });
+
+      const othersCheckbox = document.getElementById("symptomOthersCheckbox");
+      const otherField = document.getElementById("otherSymptoms");
+
+      if (othersCheckbox && othersCheckbox.checked && otherField && otherField.value.trim() === "") {
+        showError("otherSymptoms");
+
+        if (!firstInvalid) firstInvalid = otherField;
+        isValid = false;
+      }
+
+      const painCheckbox = document.getElementById("painCheckbox");
+      const painSite = document.getElementById("painSite");
+
+      if (painCheckbox && painCheckbox.checked && painSite && painSite.value.trim() === "") {
+        showError("painSite");
+
+        if (!firstInvalid) firstInvalid = painSite;
+        isValid = false;
+      }
+
+      if (!isValid) {
+        alert("This Field is Required");
+
+        if (firstInvalid) {
+          firstInvalid.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+
+          if (typeof firstInvalid.focus === "function") {
+            firstInvalid.focus();
+          }
+        }
+
+        return false;
+      }
+
+      return true;
+    }
+
+    function buildRecord() {
+      const record = {};
+
+      FORM_FIELDS.forEach(id => {
+        record[id] = getFieldValue(id);
+      });
+
+      CHECKBOX_GROUPS.forEach(name => {
+        record[name] = getCheckboxValues(name);
+      });
+
+      RADIO_GROUPS.forEach(name => {
+        record[name] = getRadioValue(name);
+      });
+
+      record.savedAt = new Date().toLocaleString();
+      return record;
+    }
+
+    function fillForm(record) {
+      FORM_FIELDS.forEach(id => {
+        setFieldValue(id, record[id] || "");
+      });
+
+      CHECKBOX_GROUPS.forEach(name => {
+        setCheckboxValues(name, record[name] || []);
+      });
+
+      RADIO_GROUPS.forEach(name => {
+        setRadioValue(name, record[name] || "");
+      });
+
+      toggleOtherSymptoms();
+      togglePainSite();
+    }
+
+    function resetForm() {
+      document.getElementById("chartForm").reset();
+      CHECKBOX_GROUPS.forEach(name => setCheckboxValues(name, []));
+      RADIO_GROUPS.forEach(name => setRadioValue(name, ""));
+      clearErrors();
+      editIndex = null;
+      localStorage.removeItem(EDIT_KEY);
+      toggleOtherSymptoms();
+      togglePainSite();
+    }
+
+    function loadEditRecord() {
+      const savedEditIndex = localStorage.getItem(EDIT_KEY);
+      if (savedEditIndex === null) return;
+
+      const index = Number(savedEditIndex);
+      const records = getRecords();
+      const record = records[index];
+
+      if (!record) {
+        localStorage.removeItem(EDIT_KEY);
+        return;
+      }
+
+      fillForm(record);
+      editIndex = index;
+      localStorage.setItem(ACTIVE_KEY, String(index));
+      localStorage.removeItem(EDIT_KEY);
+    }
+
+    function toggleOtherSymptoms() {
+      const checkbox = document.getElementById("symptomOthersCheckbox");
+      const field = document.getElementById("otherSymptoms");
+
+      if (checkbox.checked) {
+        field.disabled = false;
+      } else {
+        field.disabled = true;
+        field.value = "";
+        field.classList.remove("input-error");
+        const error = document.getElementById("otherSymptomsError");
+        if (error) error.style.display = "none";
+      }
+    }
+
+    function togglePainSite() {
+      const checkbox = document.getElementById("painCheckbox");
+      const field = document.getElementById("painSite");
+
+      if (!checkbox || !field) return;
+
+      if (checkbox.checked) {
+        field.disabled = false;
+      } else {
+        field.disabled = true;
+        field.value = "";
+        field.classList.remove("input-error");
+
+        const error = document.getElementById("painSiteError");
+        if (error) error.style.display = "none";
+      }
+    }
+
+    document.getElementById("symptomOthersCheckbox").addEventListener("change", toggleOtherSymptoms);
+    document.getElementById("painCheckbox").addEventListener("change", togglePainSite);
+
+    document.getElementById("chartForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      if (!validateRequiredFields()) {
+        return;
+      }
+
+      const record = buildRecord();
+      const records = getRecords();
+
+      if (editIndex === null) {
+        records.push(record);
+        localStorage.setItem(ACTIVE_KEY, String(records.length - 1));
+        alert("Record saved successfully.");
+      } else {
+        records[editIndex] = {
+          ...records[editIndex],
+          ...record
+        };
+        localStorage.setItem(ACTIVE_KEY, String(editIndex));
+        alert("Record updated successfully.");
+      }
+
+      saveRecords(records);
+      resetForm();
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", resetForm);
+
+    loadEditRecord();
+    toggleOtherSymptoms();
+    togglePainSite();
+  
+    // Toggle Others fields
+    function toggleCheckboxField(checkboxId, fieldId) {
+      const checkbox = document.getElementById(checkboxId);
+      const field = document.getElementById(fieldId);
+
+      checkbox.addEventListener("change", function() {
+        if (this.checked) {
+          field.disabled = false;
+        } else {
+          field.disabled = true;
+          field.value = "";
+        }
+      });
+    }
+
+    toggleCheckboxField("heentOthersCheckbox", "heentOthers");
+    toggleCheckboxField("chestOthersCheckbox", "chestLungsOthers");
+    toggleCheckboxField("cvsOthersCheckbox", "cvsOthers");
+    toggleCheckboxField("abdomenOthersCheckbox", "abdomenOthers");
+    toggleCheckboxField("guOthersCheckbox", "guOthers");
+    toggleCheckboxField("skinExtOthersCheckbox", "skinExtOthers");
+    toggleCheckboxField("neuroOthersCheckbox", "neuroOthers");
+
+  </script>
+</body>
+</html>

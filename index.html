@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DCH Patient Selector</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1f3c88">
+</head>
+<body>
+<div class="container">
+
+<div class="nav">
+  <a href="form.html">Clinical Form</a>
+  <a href="index.html">Patient Selector</a>
+  <a href="vital-signs.html">Vital Signs</a>
+  <a href="laboratory-reports.html">Laboratory Reports</a>
+  <a href="ivf-sheet.html">IVF Sheet</a>
+  <a href="intake-output.html">Intake/Output</a>
+  <a href="nurses-notes.html">Nurse's Notes</a>
+  <a href="medication-sheet.html">Medication Sheet</a>
+  <a href="downward-referral.html">Downward Referral</a>
+    <a href="records.html">Records</a>
+</div>
+
+<div class="header">
+  <img src="logo.png" class="logo" alt="Hospital Logo">
+  <div>
+    <h1>Doctors Community Hospital</h1>
+    <p>P-1 Poblacion, Mawab, Davao de Oro</p>
+    <h2>Patient Selector / Shared Data</h2>
+  </div>
+</div>
+
+
+<div class="section">
+  <h3>Select Existing Patient Record</h3>
+  <p class="note">Choose a patient here first. Other forms will auto-fill the same patient details.</p>
+  <div class="grid">
+    <div>
+      <label>Search Patient</label>
+      <input type="text" id="searchPatient" placeholder="Search patient name...">
+    </div>
+    <div>
+      <label>Patient Record</label>
+      <select id="patientSelect"></select>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Shared Patient Information</h3>
+  <div class="grid">
+    <div><label>Patient's Name</label><input type="text" id="patientName"></div>
+    <div><label>Age/Sex</label><input type="text" id="ageSex"></div>
+    <div><label>Room & Bed No.</label><input type="text" id="roomBedNo"></div>
+    <div><label>Attending Physician</label><input type="text" id="attendingPhysician"></div>
+    <div><label>Case No.</label><input type="text" id="caseNo"></div>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="btn-save" id="saveHeader">Save Shared Data</button>
+  <button class="btn-clear" id="newRecord">Create New Blank Patient</button>
+</div>
+
+</div>
+<script src="app.js"></script>
+
+<script>
+function renderPatients() {
+  const records = getAllRecords();
+  const search = getValue("searchPatient").toLowerCase();
+  const select = document.getElementById("patientSelect");
+  select.innerHTML = "";
+
+  records.forEach((record, index) => {
+    const name = record.patientName || "No Name";
+    if (!name.toLowerCase().includes(search)) return;
+    const option = document.createElement("option");
+    option.value = index;
+    option.textContent = `${name} | ${record.age || record.ageSex || ""} | ${record.roomBedNo || ""}`;
+    select.appendChild(option);
+  });
+
+  const active = getActiveIndex();
+  if (active !== null) select.value = String(active);
+}
+
+document.getElementById("searchPatient").addEventListener("input", renderPatients);
+
+document.getElementById("patientSelect").addEventListener("change", function() {
+  setActiveIndex(this.value);
+  syncPatientHeader();
+});
+
+document.getElementById("saveHeader").addEventListener("click", function() {
+  savePatientHeader();
+  alert("Shared patient data saved.");
+  renderPatients();
+});
+
+document.getElementById("newRecord").addEventListener("click", function() {
+  const records = getAllRecords();
+  records.push({});
+  saveAllRecords(records);
+  setActiveIndex(records.length - 1);
+  location.reload();
+});
+
+renderPatients();
+syncPatientHeader();
+</script>
+
+</body>
+</html>

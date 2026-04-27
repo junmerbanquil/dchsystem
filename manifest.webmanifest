@@ -1,0 +1,13 @@
+{
+  "name": "DCH Clinical Chart System",
+  "short_name": "DCH Chart",
+  "description": "Doctors Community Hospital Clinical Chart and Patient Records PWA",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1f3c88",
+  "icons": [
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

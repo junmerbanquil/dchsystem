@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Downward Referral Form</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1f3c88">
+</head>
+<body>
+<div class="container">
+
+<div class="nav">
+  <a href="form.html">Clinical Form</a>
+  <a href="index.html">Patient Selector</a>
+  <a href="vital-signs.html">Vital Signs</a>
+  <a href="laboratory-reports.html">Laboratory Reports</a>
+  <a href="ivf-sheet.html">IVF Sheet</a>
+  <a href="intake-output.html">Intake/Output</a>
+  <a href="nurses-notes.html">Nurse's Notes</a>
+  <a href="medication-sheet.html">Medication Sheet</a>
+  <a href="downward-referral.html">Downward Referral</a>
+  <a href="records.html">Records</a>
+</div>
+
+<div class="header">
+  <img src="logo.png" class="logo" alt="Hospital Logo">
+  <div>
+    <h1>Doctors Community Hospital</h1>
+    <p>P-1 Poblacion, Mawab, Davao de Oro</p>
+    <h2>Downward Referral Form</h2>
+  </div>
+</div>
+
+
+<div class="section">
+  <h3>Date of Referral</h3>
+  <div class="grid">
+    <div><label>Date of Referral</label><input type="date" id="referralDate"></div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Referring Hospital</h3>
+  <div class="grid">
+    <div><label>Name of Hospital</label><input type="text" id="refHospitalName" value="DOCTORS COMMUNITY HOSPITAL"></div>
+    <div><label>PAN</label><input type="text" id="refHospitalPAN" value="H11030117"></div>
+    <div><label>Address of Hospital</label><input type="text" id="refHospitalAddress" value="P-1, National Highway, Poblacion, Mawab, Davao de Oro"></div>
+    <div><label>Emergency Department Attending Physician</label><input type="text" id="refEDPhysician"></div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Patient Data</h3>
+  <div class="grid">
+    <div><label>Name</label><input type="text" id="refPatientName"></div>
+    <div><label>Age</label><input type="text" id="refPatientAge"></div>
+    <div><label>Sex</label><input type="text" id="refPatientSex"></div>
+    <div><label>PIN</label><input type="text" id="refPatientPIN"></div>
+  </div>
+
+  <label>Chief Complaint</label><textarea id="refChiefComplaint"></textarea>
+  <label>History of Present Illness</label><textarea id="refHPI"></textarea>
+  <label>Physical Examination</label><textarea id="refPhysicalExam"></textarea>
+  <label>Initial Impression</label><textarea id="refInitialImpression"></textarea>
+  <label>Management at ED</label><textarea id="refManagementED"></textarea>
+  <label>Final Diagnosis</label><textarea id="refFinalDiagnosis"></textarea>
+  <label>Recommendations</label><textarea id="refRecommendations"></textarea>
+</div>
+
+<div class="section">
+  <h3>YAKAP</h3>
+  <div class="grid">
+    <div><label>Name of YAKAP Provider</label><input type="text" id="yakapProvider" value="DOCTORS COMMUNITY HOSPITAL"></div>
+    <div><label>PAN</label><input type="text" id="yakapPAN" value="P11036318"></div>
+    <div><label>Address</label><input type="text" id="yakapAddress" value="P-1, National Highway, Poblacion, Mawab, Davao de Oro"></div>
+    <div><label>Receiving YAKAP Physician</label><input type="text" id="yakapPhysician" value="Martelino D. Briguez, MD"></div>
+    <div><label>Date Received</label><input type="date" id="yakapDateReceived"></div>
+  </div>
+</div>
+
+<div class="actions">
+  <button class="btn-save" id="savePage">Save Downward Referral</button>
+  <button class="btn-print" onclick="printPage()">Print</button>
+</div>
+
+</div>
+<script src="app.js"></script>
+
+<script>
+const fields = [
+  "referralDate", "refHospitalName", "refHospitalPAN", "refHospitalAddress", "refEDPhysician",
+  "refPatientName", "refPatientAge", "refPatientSex", "refPatientPIN",
+  "refChiefComplaint", "refHPI", "refPhysicalExam", "refInitialImpression",
+  "refManagementED", "refFinalDiagnosis", "refRecommendations",
+  "yakapProvider", "yakapPAN", "yakapAddress", "yakapPhysician", "yakapDateReceived"
+];
+
+syncPatientHeader();
+const record = getActiveRecord();
+fillFields(fields, record);
+syncPatientHeader();
+
+document.getElementById("savePage").addEventListener("click", function() {
+  updateActiveRecord(collectFields(fields));
+  alert("Downward Referral saved.");
+});
+</script>
+
+</body>
+</html>

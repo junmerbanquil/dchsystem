@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DCH Patient Records Dashboard</title>
+
+  <!-- PDF download library. Internet is needed for this CDN. Print > Save as PDF still works offline. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+      color: #222;
+    }
+
+    .container {
+      max-width: 1250px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.08);
+    }
+
+    .top-link {
+      text-align: right;
+      margin-bottom: 15px;
+    }
+
+    .top-link a {
+      text-decoration: none;
+      color: #0d6efd;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+
+    h1, h2, h3 {
+      color: #1f3c88;
+      margin-top: 0;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      font-size: 15px;
+      margin-bottom: 15px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 35% 65%;
+      gap: 16px;
+    }
+
+    .panel {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 14px;
+      background: #fafafa;
+    }
+
+    .patient-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .patient-card:hover,
+    .patient-card.active {
+      border-color: #0d6efd;
+      background: #eef5ff;
+    }
+
+    .patient-card h3 {
+      margin-bottom: 5px;
+      font-size: 18px;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #555;
+      margin: 3px 0;
+    }
+
+    .form-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    button {
+      padding: 9px 12px;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .btn-form { background: #0d6efd; }
+    .btn-edit { background: #198754; }
+    .btn-print { background: #0d6efd; }
+    .btn-pdf { background: #fd7e14; }
+    .btn-txt { background: #6f42c1; }
+    .btn-delete { background: #dc3545; }
+    .btn-all { background: #343a40; }
+
+    .summary {
+      border: 1px solid #ccc;
+      background: #fff;
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+
+    .summary-section {
+      border: 1px solid #999;
+      margin-bottom: 10px;
+      page-break-inside: avoid;
+    }
+
+    .summary-title {
+      background: #f2f2f2;
+      border-bottom: 1px solid #999;
+      padding: 6px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .summary-body {
+      padding: 8px;
+      line-height: 1.35;
+      font-size: 13px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .field {
+      border-bottom: 1px solid #999;
+      min-height: 20px;
+      padding: 2px 3px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+      background: #fff;
+    }
+
+    th, td {
+      border: 1px solid #999;
+      padding: 5px;
+      font-size: 12px;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f2f2f2;
+    }
+
+    .empty {
+      padding: 15px;
+      background: #f8f9fa;
+      border: 1px dashed #aaa;
+      border-radius: 8px;
+    }
+
+    .hidden-print-area {
+      display: none;
+    }
+
+    .print-document {
+      width: 8.5in;
+      margin: auto;
+      padding: 0.3in;
+      background: #fff;
+      color: #000;
+      font-size: 11px;
+    }
+
+    .print-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      border-bottom: 2px solid #000;
+      padding-bottom: 8px;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .print-logo {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+    }
+
+
+    /* ================================
+       CLINICAL CHART PRINT/PDF STYLE ONLY
+       This does not change the dashboard page style.
+       ================================ */
+
+    .clinical-print {
+      width: 8.5in;
+      margin: 0 auto;
+      padding: 0.22in;
+      background: #fff;
+      color: #000;
+      font-family: Arial, sans-serif;
+      font-size: 9.6px;
+      line-height: 1.15;
+    }
+
+    .clinical-page {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .clinical-page-break {
+      page-break-before: always;
+      break-before: page;
+      height: 0;
+      margin: 0;
+      padding: 0;
+    }
+
+    .clinical-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-align: center;
+      border-bottom: 2px solid #000;
+      padding-bottom: 5px;
+      margin-bottom: 5px;
+    }
+
+    .clinical-logo {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+    }
+
+    .clinical-header h2 {
+      margin: 0;
+      color: #000;
+      font-size: 15px;
+      text-transform: uppercase;
+    }
+
+    .clinical-header p {
+      margin: 1px 0;
+      font-size: 9.5px;
+    }
+
+    .clinical-title {
+      text-align: center;
+      font-weight: bold;
+      font-size: 12px;
+      margin: 4px 0;
+      text-transform: uppercase;
+    }
+
+    .clinical-section {
+      border: 1px solid #000;
+      margin-bottom: 4px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .clinical-section-title {
+      background: #eee;
+      border-bottom: 1px solid #000;
+      font-weight: bold;
+      text-transform: uppercase;
+      padding: 3px 4px;
+    }
+
+    .clinical-section-body {
+      padding: 4px;
+    }
+
+    .clinical-info-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.7fr 0.8fr 1fr 0.8fr 0.7fr;
+      gap: 4px;
+      align-items: end;
+    }
+
+    .clinical-label {
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .clinical-line {
+      display: inline-block;
+      border-bottom: 1px solid #000;
+      min-height: 14px;
+      min-width: 45px;
+      padding: 1px 2px;
+      vertical-align: bottom;
+    }
+
+    .clinical-full-line {
+      display: block;
+      border: 1px solid #000;
+      min-height: 34px;
+      padding: 3px;
+      white-space: pre-wrap;
+      margin-top: 2px;
+    }
+
+    .clinical-small-line {
+      display: inline-block;
+      border-bottom: 1px solid #000;
+      min-width: 80px;
+      min-height: 12px;
+      padding: 0 2px;
+    }
+
+    .clinical-check-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px 6px;
+      margin-top: 2px;
+    }
+
+    .clinical-check-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px 6px;
+      margin-top: 2px;
+    }
+
+    .clinical-check-grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 2px 6px;
+      margin-top: 2px;
+    }
+
+    .clinical-check {
+      font-size: 8.8px;
+      min-height: 12px;
+    }
+
+    .clinical-box {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border: 1px solid #000;
+      text-align: center;
+      line-height: 7px;
+      font-size: 8px;
+      font-weight: bold;
+      margin-right: 2px;
+      vertical-align: middle;
+    }
+
+    .clinical-vitals {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      margin-top: 2px;
+    }
+
+    .clinical-vital-item {
+      border: 1px solid #000;
+      min-height: 17px;
+      padding: 2px;
+      text-align: center;
+      font-size: 8.8px;
+    }
+
+    .clinical-exam-block {
+      border-top: 1px solid #ccc;
+      padding-top: 3px;
+      margin-top: 3px;
+    }
+
+    .clinical-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+
+    .clinical-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 3px;
+    }
+
+    .clinical-table th,
+    .clinical-table td {
+      border: 1px solid #000;
+      padding: 4px;
+      vertical-align: top;
+      font-size: 9px;
+      min-height: 45px;
+      text-align: left;
+    }
+
+    .clinical-table th {
+      text-align: center;
+      background: #eee;
+    }
+
+    .clinical-signature {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .clinical-signature div {
+      border-top: 1px solid #000;
+      text-align: center;
+      padding-top: 2px;
+      min-height: 24px;
+    }
+
+    @media print {
+      .clinical-print {
+        width: 100%;
+        padding: 0.18in;
+      }
+    }
+
+
+    @media print {
+      body { background: #fff; padding: 0; }
+      .container { display: none !important; }
+      .hidden-print-area { display: block !important; }
+      .print-document { width: 100%; padding: 0.25in; }
+      @page { size: 8.5in 13in; margin: 0.25in; }
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1f3c88">
+</head>
+<body>
+  <div class="container">
+    <div class="top-link">
+      <a href="form.html">Main Clinical Form</a>
+      <a href="index.html">Patient Selector</a>
+    </div>
+
+    <h1>DCH Patient Records Dashboard</h1>
+    <input type="text" id="searchInput" class="search-box" placeholder="Search patient name...">
+
+    <div class="layout">
+      <div class="panel">
+        <h2>Patients</h2>
+        <div id="patientList"></div>
+      </div>
+
+      <div class="panel">
+        <h2 id="selectedTitle">Select a patient</h2>
+
+        <div id="actionArea" style="display:none;">
+          <div class="form-buttons">
+            <button class="btn-all" onclick="showForm('all')">All Data</button>
+            <button class="btn-form" onclick="showForm('clinical')">Clinical Chart</button>
+            <button class="btn-form" onclick="showForm('vital')">Vital Signs</button>
+            <button class="btn-form" onclick="showForm('lab')">Laboratory</button>
+            <button class="btn-form" onclick="showForm('ivf')">IVF</button>
+            <button class="btn-form" onclick="showForm('fio')">Intake/Output</button>
+            <button class="btn-form" onclick="showForm('nurse')">Nurse's Notes</button>
+            <button class="btn-form" onclick="showForm('med')">Medication</button>
+            <button class="btn-form" onclick="showForm('referral')">Referral</button>
+          </div>
+
+          <div class="form-buttons">
+            <button class="btn-edit" onclick="editSelected()">Edit Selected Form</button>
+            <button class="btn-print" onclick="printSelected()">Print Selected</button>
+            <button class="btn-pdf" onclick="downloadSelectedPDF()">Download PDF</button>
+            <button class="btn-txt" onclick="downloadSelectedTXT()">Download TXT</button>
+            <button class="btn-delete" onclick="deleteSelected()">Delete Patient Record</button>
+          </div>
+
+          <div id="previewArea"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="printArea" class="hidden-print-area"></div>
+
+  <script src="app.js"></script>
+<script>
+    const STORAGE_KEY = "dchClinicalChartRecords";
+    const EDIT_KEY = "dchClinicalChartEditIndex";
+    const ACTIVE_KEY = "dchActivePatientRecord";
+
+    let selectedIndex = null;
+    let selectedForm = "all";
+
+    const formRoutes = {
+      all: "records.html",
+      clinical: "form.html",
+      vital: "vital-signs.html",
+      lab: "laboratory-reports.html",
+      ivf: "ivf-sheet.html",
+      fio: "intake-output.html",
+      nurse: "nurses-notes.html",
+      med: "medication-sheet.html",
+      referral: "downward-referral.html"
+    };
+
+    function getRecords() {
+      return window.DCHData ? window.DCHData.getAllRecords() : (JSON.parse(localStorage.getItem(STORAGE_KEY)) || []);
+    }
+
+    function saveRecords(records) {
+      if (window.DCHData) { window.DCHData.saveAllRecords(records); }
+      else { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }
+    }
+
+    function escapeHTML(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function arr(value) {
+      return Array.isArray(value) ? value.join(", ") : "";
+    }
+
+    function tableHTML(title, headers, rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        return sectionHTML(title, "<p>No data encoded.</p>");
+      }
+
+      const body = rows.map(row => `
+        <tr>${headers.map((_, i) => `<td>${escapeHTML(row?.[i] || "")}</td>`).join("")}</tr>
+      `).join("");
+
+      return `
+        <div class="summary-section">
+          <div class="summary-title">${title}</div>
+          <div class="summary-body">
+            <table>
+              <thead><tr>${headers.map(h => `<th>${escapeHTML(h)}</th>`).join("")}</tr></thead>
+              <tbody>${body}</tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function sectionHTML(title, body) {
+      return `
+        <div class="summary-section">
+          <div class="summary-title">${title}</div>
+          <div class="summary-body">${body}</div>
+        </div>
+      `;
+    }
+
+    function patientHeader(record) {
+      const ageSex = record.ageSex || `${record.age || ""}${record.sex ? " / " + record.sex : ""}`;
+      return `
+        <div class="summary-section">
+          <div class="summary-title">Patient Information</div>
+          <div class="summary-body">
+            <div class="grid">
+              <div><strong>Patient's Name:</strong><div class="field">${escapeHTML(record.patientName || record.refPatientName)}</div></div>
+              <div><strong>Age/Sex:</strong><div class="field">${escapeHTML(ageSex)}</div></div>
+              <div><strong>Room & Bed No.:</strong><div class="field">${escapeHTML(record.roomBedNo)}</div></div>
+              <div><strong>Attending Physician:</strong><div class="field">${escapeHTML(record.attendingPhysician)}</div></div>
+              <div><strong>Date Admitted:</strong><div class="field">${escapeHTML(record.dateAdmitted)}</div></div>
+              <div><strong>Case No.:</strong><div class="field">${escapeHTML(record.caseNo)}</div></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function clinicalHTML(record) {
+      return `
+        ${patientHeader(record)}
+        ${sectionHTML("Clinical History", `
+          <p><strong>Chief Complaint:</strong><br>${escapeHTML(record.chiefComplaint)}</p>
+          <p><strong>Triage Level:</strong> ${escapeHTML(record.triageLevel)}</p>
+          <p><strong>History of Present Illness:</strong><br>${escapeHTML(record.historyPresentIllness)}</p>
+          <p><strong>Family / Personal / Social History:</strong><br>${escapeHTML(record.familyPersonalSocialHistory)}</p>
+        `)}
+        ${sectionHTML("Past Medical / OB-GYN", `
+          <p><strong>Past Medical History:</strong> ${escapeHTML(arr(record.pastMedicalHistory))}</p>
+          <p><strong>Previous Hospitalization:</strong> ${escapeHTML(record.previousHospitalization)}</p>
+          <p><strong>PMH Others:</strong> ${escapeHTML(record.pastMedicalHistoryOthers)}</p>
+          <p><strong>OB/GYN:</strong> G ${escapeHTML(record.obgynG)} | P ${escapeHTML(record.obgynP)} | Pattern ${escapeHTML(record.obgynPattern)} | LMP ${escapeHTML(record.lmp)} | NA ${escapeHTML(record.obgynNA)}</p>
+        `)}
+        ${sectionHTML("Signs and Symptoms", `
+          <p>${escapeHTML(arr(record.symptoms))}</p>
+          <p><strong>Pain Site:</strong> ${escapeHTML(record.painSite)}</p>
+          <p><strong>Others:</strong> ${escapeHTML(record.otherSymptoms)}</p>
+        `)}
+        ${sectionHTML("Physical Examination", `
+          <p><strong>General Survey:</strong> ${escapeHTML(record.generalSurvey)}</p>
+          <p><strong>Vital Signs:</strong> BP ${escapeHTML(record.vitalBP)}, HR ${escapeHTML(record.vitalHR)}, RR ${escapeHTML(record.vitalRR)}, Temp ${escapeHTML(record.vitalTemp)}, Weight ${escapeHTML(record.vitalWeight)}, Height ${escapeHTML(record.vitalHeight)}, PFR ${escapeHTML(record.vitalPFR)}</p>
+          <p><strong>HEENT:</strong> ${escapeHTML(arr(record.heent))} | Others: ${escapeHTML(record.heentOthers)}</p>
+          <p><strong>Chest/Lungs:</strong> ${escapeHTML(arr(record.chestLungs))} | Others: ${escapeHTML(record.chestLungsOthers)}</p>
+          <p><strong>CVS:</strong> ${escapeHTML(arr(record.cvs))} | Others: ${escapeHTML(record.cvsOthers)}</p>
+          <p><strong>Abdomen:</strong> ${escapeHTML(arr(record.abdomen))} | Others: ${escapeHTML(record.abdomenOthers)}</p>
+          <p><strong>GU:</strong> ${escapeHTML(arr(record.gu))} | Others: ${escapeHTML(record.guOthers)}</p>
+          <p><strong>Skin/Extremities:</strong> ${escapeHTML(arr(record.skinExt))} | Others: ${escapeHTML(record.skinExtOthers)}</p>
+          <p><strong>Neuro:</strong> ${escapeHTML(arr(record.neuro))} | Others: ${escapeHTML(record.neuroOthers)}</p>
+        `)}
+        ${sectionHTML("Impression / Progress Notes / Medical Order", `
+          <p><strong>Impression:</strong><br>${escapeHTML(record.impression)}</p>
+          <p><strong>Progress Notes:</strong><br>${escapeHTML(record.progressNotes)}</p>
+          <p><strong>Medical Order:</strong><br>${escapeHTML(record.medicalOrder)}</p>
+          <p><strong>Prepared By:</strong> ${escapeHTML(record.preparedBy)} | <strong>Date:</strong> ${escapeHTML(record.preparedDate)} | <strong>Time:</strong> ${escapeHTML(record.preparedTime)}</p>
+        `)}
+      `;
+    }
+
+
+    function clinicalChecked(list, value) {
+      const selected = Array.isArray(list) ? list : [];
+      return selected.includes(value) ? "✓" : "";
+    }
+
+    function clinicalCheckItems(options, selected, gridClass = "clinical-check-grid") {
+      return `<div class="${gridClass}">` + options.map(item => `
+        <div class="clinical-check"><span class="clinical-box">${clinicalChecked(selected, item)}</span>${escapeHTML(item)}</div>
+      `).join("") + `</div>`;
+    }
+
+    function clinicalLine(value) {
+      return `<span class="clinical-line">${escapeHTML(value)}</span>`;
+    }
+
+    const clinicalSymptoms = [
+      "Altered mental sensorium", "Diarrhea", "Hematemesis", "Palpitations",
+      "Abdominal cramp/pain", "Dizziness", "Hematuria", "Seizures",
+      "Anorexia", "Dysphagia", "Hemoptysis", "Skin Rashes",
+      "Bleeding Gums", "Dyspnea", "Irritability", "Stool Bloody/Black tarry/mucoid",
+      "Body Weakness", "Dysuria", "Jaundice", "Sweating",
+      "Blurring of Vision", "Epistaxis", "Lower Extremity edema", "Urgency",
+      "Chest Pain/discomfort", "Fever", "Myalgia", "Vomiting",
+      "Constipation", "Frequency of Urination", "Orthopnea", "Weight Loss",
+      "Cough", "Headache", "Pain", "Others"
+    ];
+
+    const clinicalPhysicalGroups = [
+      {
+        title: "HEENT",
+        key: "heent",
+        others: "heentOthers",
+        options: ["Essentially Normal", "Abnormal pupillary Reaction", "Cervical Lymphadenopathy", "Dry Mucous Membrane", "Icteric Sclerae", "Pale Conjunctive", "Sunken Eyeballs", "Sunken Fontanel"]
+      },
+      {
+        title: "CHEST / LUNGS",
+        key: "chestLungs",
+        others: "chestLungsOthers",
+        options: ["Essentially Normal", "Symmetrical chest expansion", "Decreased Breath sounds", "Wheezes", "Lumps/s over breast/s", "Rales/Crackles/rhonchi", "Intercostal Rib/clavicular retraction"]
+      },
+      {
+        title: "CVS",
+        key: "cvs",
+        others: "cvsOthers",
+        options: ["Essentially Normal", "Displaced apex beat", "Heaves and/or thrills", "Pericardial bulge", "Irregular rhythm", "Muffled heart sound", "Murmur"]
+      },
+      {
+        title: "ABDOMEN",
+        key: "abdomen",
+        others: "abdomenOthers",
+        options: ["Essentially Normal", "Abdominal rigidity", "Abdomen tenderness", "Hyperactive bowel sounds", "Palpable mass/es", "Tympanitic/dull abdomen", "Uterine Contraction"]
+      },
+      {
+        title: "GU (IE)",
+        key: "gu",
+        others: "guOthers",
+        options: ["Essentially Normal", "Blood Stained in exam finger", "Cervical Dilation", "Presence of abnormal Discharge"]
+      },
+      {
+        title: "SKIN / EXTREMITIES",
+        key: "skinExt",
+        others: "skinExtOthers",
+        options: ["Essentially Normal", "Clubbing", "Cold Clammy Skin", "Cyanosis/mottled skin", "Edema/Swelling", "Decreased mobility", "Pale Nail beds", "Poor Skin Turgor", "Rashes/Petechiae", "Weak Pulses"]
+      },
+      {
+        title: "NEURO-EXAM",
+        key: "neuro",
+        others: "neuroOthers",
+        options: ["Essentially Normal", "Abnormal gait", "Abnormal Position sense", "Abnormal/decreased sensation", "Abnormal reflex/es", "Poor/Altered memory", "Poor muscle tone/strength", "Poor Coordination"]
+      }
+    ];
+
+    function clinicalChartPrintHTML(record) {
+      const ageSex = record.ageSex || `${record.age || ""}${record.sex ? " / " + record.sex : ""}`;
+
+      return `
+        <div class="clinical-print">
+          <div class="clinical-page">
+            <div class="clinical-header">
+              <img src="logo.png" class="clinical-logo" alt="Hospital Logo">
+              <div>
+                <h2>Doctors Community Hospital</h2>
+                <p>P-1 Poblacion, Mawab, Davao de Oro</p>
+              </div>
+            </div>
+
+            <div class="clinical-title">Clinical History</div>
+
+            <div class="clinical-section">
+              <div class="clinical-section-body">
+                <div class="clinical-info-grid">
+                  <div><span class="clinical-label">Patient's Name:</span> ${clinicalLine(record.patientName || record.refPatientName)}</div>
+                  <div><span class="clinical-label">Age/Sex:</span> ${clinicalLine(ageSex)}</div>
+                  <div><span class="clinical-label">Room & Bed No.:</span> ${clinicalLine(record.roomBedNo)}</div>
+                  <div><span class="clinical-label">Attending Physician:</span> ${clinicalLine(record.attendingPhysician)}</div>
+                  <div><span class="clinical-label">Date Admitted:</span> ${clinicalLine(record.dateAdmitted)}</div>
+                  <div><span class="clinical-label">Case No.:</span> ${clinicalLine(record.caseNo)}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="clinical-section">
+              <div class="clinical-section-title">Chief Complaint</div>
+              <div class="clinical-section-body">
+                <div class="clinical-full-line">${escapeHTML(record.chiefComplaint)}</div>
+                <div style="margin-top:4px;">
+                  <span class="clinical-label">Triage Level:</span>
+                  ${["1","2","3","4","5"].map(level => `<span style="margin-left:12px;"><span class="clinical-box">${record.triageLevel === level ? "✓" : ""}</span>${level}</span>`).join("")}
+                </div>
+              </div>
+            </div>
+
+            <div class="clinical-section">
+              <div class="clinical-section-title">History of Present Illness</div>
+              <div class="clinical-section-body">
+                <div class="clinical-full-line" style="min-height:52px;">${escapeHTML(record.historyPresentIllness)}</div>
+              </div>
+            </div>
+
+            <div class="clinical-section">
+              <div class="clinical-section-title">Family History / Personal / Social History</div>
+              <div class="clinical-section-body">
+                <div class="clinical-full-line">${escapeHTML(record.familyPersonalSocialHistory)}</div>
+              </div>
+            </div>
+
+            <div class="clinical-section">
+              <div class="clinical-section-title">Past Medical History</div>
+              <div class="clinical-section-body">
+                ${clinicalCheckItems(["Hypertension", "Diabetes Mellitus", "Asthma", "Cancer", "Smoker", "Alcohol Beverage Drinker"], record.pastMedicalHistory, "clinical-check-grid-3")}
+                <div class="clinical-two-col" style="margin-top:3px;">
+                  <div><span class="clinical-label">Previous Hospitalization:</span> ${clinicalLine(record.previousHospitalization)}</div>
+                  <div><span class="clinical-label">Others:</span> ${clinicalLine(record.pastMedicalHistoryOthers)}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="clinical-section">
+              <div class="clinical-section-title">OB / GYN History</div>
+              <div class="clinical-section-body">
+                <span class="clinical-label">G:</span> ${clinicalLine(record.obgynG)}
+                <span class="clinical-label" style="margin-left:15px;">P:</span> ${clinicalLine(record.obgynP)}
+                <span class="clinical-label" style="margin-left:15px;">( - - - ):</span> ${clinicalLine(record.obgynPattern)}
+                <span class="clinical-label" style="margin-left:15px;">LMP:</span> ${clinicalLine(record.lmp)}
+                <span class="clinical-label" style="margin-left:15px;">NA:</span> ${clinicalLine(record.obgynNA)}
+              </div>
+            </div>
+
+            <div class="clinical-section">
+              <div class="clinical-section-title">Pertinent Signs and Symptoms on Admission (tick applicable box/es)</div>
+              <div class="clinical-section-body">
+                ${clinicalCheckItems(clinicalSymptoms, record.symptoms)}
+                <div class="clinical-two-col" style="margin-top:3px;">
+                  <div><span class="clinical-label">Pain (site):</span> ${clinicalLine(record.painSite)}</div>
+                  <div><span class="clinical-label">Others:</span> ${clinicalLine(record.otherSymptoms)}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="clinical-section">
+              <div class="clinical-section-title">Physical Examination on Admission (Pertinent Findings per System)</div>
+              <div class="clinical-section-body">
+                <div>
+                  <span class="clinical-label">General Survey:</span>
+                  <span style="margin-left:8px;"><span class="clinical-box">${record.generalSurvey === "Awake and alert" ? "✓" : ""}</span>Awake and alert</span>
+                  <span style="margin-left:15px;"><span class="clinical-box">${record.generalSurvey === "Altered Sensorium" ? "✓" : ""}</span>Altered Sensorium:</span>
+                  ${clinicalLine(record.alteredSensoriumDetails)}
+                </div>
+
+                <div style="margin-top:4px;"><span class="clinical-label">Vital Signs:</span></div>
+                <div class="clinical-vitals">
+                  <div class="clinical-vital-item"><strong>BP</strong><br>${escapeHTML(record.vitalBP)}</div>
+                  <div class="clinical-vital-item"><strong>HR</strong><br>${escapeHTML(record.vitalHR)}</div>
+                  <div class="clinical-vital-item"><strong>RR</strong><br>${escapeHTML(record.vitalRR)}</div>
+                  <div class="clinical-vital-item"><strong>Temp</strong><br>${escapeHTML(record.vitalTemp)}</div>
+                  <div class="clinical-vital-item"><strong>Weight</strong><br>${escapeHTML(record.vitalWeight)}</div>
+                  <div class="clinical-vital-item"><strong>Height</strong><br>${escapeHTML(record.vitalHeight)}</div>
+                  <div class="clinical-vital-item"><strong>PFR</strong><br>${escapeHTML(record.vitalPFR)}</div>
+                </div>
+
+                <div class="clinical-exam-block">
+                  <strong>HEENT:</strong>
+                  ${clinicalCheckItems(clinicalPhysicalGroups[0].options, record.heent)}
+                  <span class="clinical-label">Others:</span> ${clinicalLine(record.heentOthers)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="clinical-page-break"></div>
+
+          <div class="clinical-page">
+            <div class="clinical-header">
+              <img src="logo.png" class="clinical-logo" alt="Hospital Logo">
+              <div>
+                <h2>Doctors Community Hospital</h2>
+                <p>P-1 Poblacion, Mawab, Davao de Oro</p>
+              </div>
+            </div>
+
+            <div class="clinical-title">Physical Examination Continued</div>
+
+            <div class="clinical-section">
+              <div class="clinical-section-body">
+                ${clinicalPhysicalGroups.slice(1).map(group => `
+                  <div class="clinical-exam-block">
+                    <strong>${group.title}:</strong>
+                    ${clinicalCheckItems(group.options, record[group.key])}
+                    <span class="clinical-label">Others:</span> ${clinicalLine(record[group.others])}
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+
+            <div class="clinical-section">
+              <div class="clinical-section-title">Impression</div>
+              <div class="clinical-section-body">
+                <div class="clinical-full-line" style="min-height:42px;">${escapeHTML(record.impression)}</div>
+              </div>
+            </div>
+
+            <div class="clinical-section">
+              <div class="clinical-section-title">Progress Notes / Medical Order</div>
+              <div class="clinical-section-body">
+                <table class="clinical-table">
+                  <thead>
+                    <tr>
+                      <th style="width:40%;">Date & Time Progress Notes</th>
+                      <th style="width:60%;">Medical Order</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style="height:90px;">${escapeHTML(record.progressNotes)}</td>
+                      <td style="height:90px;">${escapeHTML(record.medicalOrder)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div class="clinical-signature">
+                  <div><strong>Prepared By:</strong><br>${escapeHTML(record.preparedBy)}</div>
+                  <div><strong>Date:</strong><br>${escapeHTML(record.preparedDate)}</div>
+                  <div><strong>Time:</strong><br>${escapeHTML(record.preparedTime)}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function vitalHTML(record) {
+      return patientHeader(record) + tableHTML("Vital Signs Sheet", [
+        "Date", "Shift", "Time", "Temp", "Pulse/Heart Rate", "Respiratory Rate", "Blood Pressure", "O2 Saturation", "PEFR", "Height", "Weight"
+      ], record.vitalSignsTable);
+    }
+
+    function labHTML(record) {
+      return patientHeader(record) + sectionHTML("Laboratory Reports", `<p>${escapeHTML(record.laboratoryReports)}</p>`);
+    }
+
+    function ivfHTML(record) {
+      return patientHeader(record) + tableHTML("Intravenous Fluid Sheet", [
+        "Date & Time Started", "IVF Solution, Volume", "Flow Rate", "Incorporation", "Date & Time Consumed", "Remarks", "Name & Signature of NOD"
+      ], record.ivfTable);
+    }
+
+    function fioHTML(record) {
+      return patientHeader(record) + tableHTML("Fluid Intake and Output Monitoring Sheet", [
+        "Date", "Shift", "Oral", "IV", "Others Intake", "Urine", "Stool", "Others Output", "Name & Signature of NOD"
+      ], record.fioTable);
+    }
+
+    function nurseHTML(record) {
+      return patientHeader(record) + tableHTML("Nurse's Notes", ["Date", "Time", "Notes"], record.nurseNotesTable);
+    }
+
+    function medHTML(record) {
+      return patientHeader(record)
+        + tableHTML("Routine Medications", ["Date Ordered", "Medication", "Time", "Date"], record.routineMedsTable)
+        + tableHTML("PRN Medications", ["Date Ordered", "Medication", "Date"], record.prnMedsTable)
+        + tableHTML("Single Dose Medication", ["Date Ordered", "Medication", "Date & Time Given", "Initials"], record.singleDoseTable);
+    }
+
+    function referralHTML(record) {
+      return `
+        ${patientHeader(record)}
+        ${sectionHTML("Downward Referral Form", `
+          <p><strong>Date of Referral:</strong> ${escapeHTML(record.referralDate)}</p>
+          <p><strong>Referring Hospital:</strong> ${escapeHTML(record.refHospitalName)} | <strong>PAN:</strong> ${escapeHTML(record.refHospitalPAN)}</p>
+          <p><strong>Address:</strong> ${escapeHTML(record.refHospitalAddress)}</p>
+          <p><strong>ED Attending Physician:</strong> ${escapeHTML(record.refEDPhysician)}</p>
+          <p><strong>Patient:</strong> ${escapeHTML(record.refPatientName)} | Age: ${escapeHTML(record.refPatientAge)} | Sex: ${escapeHTML(record.refPatientSex)} | PIN: ${escapeHTML(record.refPatientPIN)}</p>
+          <p><strong>Chief Complaint:</strong><br>${escapeHTML(record.refChiefComplaint)}</p>
+          <p><strong>HPI:</strong><br>${escapeHTML(record.refHPI)}</p>
+          <p><strong>Physical Examination:</strong><br>${escapeHTML(record.refPhysicalExam)}</p>
+          <p><strong>Initial Impression:</strong><br>${escapeHTML(record.refInitialImpression)}</p>
+          <p><strong>Management at ED:</strong><br>${escapeHTML(record.refManagementED)}</p>
+          <p><strong>Final Diagnosis:</strong><br>${escapeHTML(record.refFinalDiagnosis)}</p>
+          <p><strong>Recommendations:</strong><br>${escapeHTML(record.refRecommendations)}</p>
+          <p><strong>YAKAP Provider:</strong> ${escapeHTML(record.yakapProvider)} | PAN: ${escapeHTML(record.yakapPAN)}</p>
+          <p><strong>Receiving YAKAP Physician:</strong> ${escapeHTML(record.yakapPhysician)} | Date Received: ${escapeHTML(record.yakapDateReceived)}</p>
+        `)}
+      `;
+    }
+
+    function allHTML(record) {
+      return clinicalHTML(record)
+        + vitalHTML(record)
+        + labHTML(record)
+        + ivfHTML(record)
+        + fioHTML(record)
+        + nurseHTML(record)
+        + medHTML(record)
+        + referralHTML(record);
+    }
+
+    function getSelectedRecord() {
+      const records = getRecords();
+      return selectedIndex === null ? null : records[selectedIndex];
+    }
+
+    function buildSelectedHTML(record) {
+      if (!record) return `<div class="empty">No selected record.</div>`;
+
+      const map = {
+        all: allHTML,
+        clinical: clinicalHTML,
+        vital: vitalHTML,
+        lab: labHTML,
+        ivf: ivfHTML,
+        fio: fioHTML,
+        nurse: nurseHTML,
+        med: medHTML,
+        referral: referralHTML
+      };
+
+      return map[selectedForm](record);
+    }
+
+    function renderPatients() {
+      const search = document.getElementById("searchInput").value.toLowerCase().trim();
+      const records = getRecords();
+      const list = document.getElementById("patientList");
+
+      list.innerHTML = "";
+
+      const filtered = records
+        .map((record, index) => ({ ...record, originalIndex: index }))
+        .filter(record => (record.patientName || record.refPatientName || "").toLowerCase().includes(search));
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="empty">No patient found.</div>`;
+        return;
+      }
+
+      filtered.forEach(record => {
+        const card = document.createElement("div");
+        card.className = "patient-card" + (record.originalIndex === selectedIndex ? " active" : "");
+        card.innerHTML = `
+          <h3>${escapeHTML(record.patientName || record.refPatientName || "No Name")}</h3>
+          <p class="small"><strong>Age/Sex:</strong> ${escapeHTML(record.age || record.ageSex || "")} / ${escapeHTML(record.sex || "")}</p>
+          <p class="small"><strong>Room:</strong> ${escapeHTML(record.roomBedNo || "")}</p>
+          <p class="small"><strong>Physician:</strong> ${escapeHTML(record.attendingPhysician || "")}</p>
+        `;
+        card.addEventListener("click", () => {
+          selectedIndex = record.originalIndex;
+          localStorage.setItem(ACTIVE_KEY, String(selectedIndex));
+          selectedForm = "all";
+          renderPatients();
+          renderPreview();
+        });
+        list.appendChild(card);
+      });
+    }
+
+    function showForm(formKey) {
+      selectedForm = formKey;
+      renderPreview();
+    }
+
+    function renderPreview() {
+      const record = getSelectedRecord();
+      const actionArea = document.getElementById("actionArea");
+      const preview = document.getElementById("previewArea");
+      const title = document.getElementById("selectedTitle");
+
+      if (!record) {
+        actionArea.style.display = "none";
+        title.textContent = "Select a patient";
+        return;
+      }
+
+      actionArea.style.display = "block";
+      title.textContent = `Selected Patient: ${record.patientName || record.refPatientName || "No Name"}`;
+      preview.innerHTML = `<div class="summary">${buildSelectedHTML(record)}</div>`;
+    }
+
+    function editSelected() {
+      if (selectedIndex === null) return alert("Please select a patient first.");
+
+      localStorage.setItem(ACTIVE_KEY, String(selectedIndex));
+      localStorage.setItem(EDIT_KEY, String(selectedIndex));
+
+      const route = formRoutes[selectedForm] || "form.html";
+      window.location.href = route;
+    }
+
+
+    function printSelected() {
+      const record = getSelectedRecord();
+      if (!record) return alert("Please select a patient first.");
+
+      const printArea = document.getElementById("printArea");
+
+      if (selectedForm === "clinical") {
+        printArea.innerHTML = clinicalChartPrintHTML(record);
+      } else {
+        printArea.innerHTML = `
+          <div class="print-document">
+            <div class="print-header">
+              <img src="logo.png" class="print-logo" alt="Hospital Logo">
+              <div>
+                <h2>Doctors Community Hospital</h2>
+                <p>P-1 Poblacion, Mawab, Davao de Oro</p>
+                <h3>${selectedForm.toUpperCase()} RECORD</h3>
+              </div>
+            </div>
+            ${buildSelectedHTML(record)}
+          </div>
+        `;
+      }
+
+      window.print();
+    }
+
+
+    function downloadSelectedPDF() {
+      const record = getSelectedRecord();
+      if (!record) return alert("Please select a patient first.");
+
+      if (typeof html2pdf === "undefined") {
+        alert("PDF tool is not loaded. Use Print Selected, then choose Save as PDF.");
+        return;
+      }
+
+      const safeName = (record.patientName || record.refPatientName || "Patient_Record").replace(/[^a-z0-9]/gi, "_");
+      const wrapper = document.createElement("div");
+
+      if (selectedForm === "clinical") {
+        wrapper.innerHTML = clinicalChartPrintHTML(record);
+      } else {
+        wrapper.innerHTML = `
+          <div class="print-document">
+            <div class="print-header">
+              <img src="logo.png" class="print-logo" alt="Hospital Logo">
+              <div>
+                <h2>Doctors Community Hospital</h2>
+                <p>P-1 Poblacion, Mawab, Davao de Oro</p>
+                <h3>${selectedForm.toUpperCase()} RECORD</h3>
+              </div>
+            </div>
+            ${buildSelectedHTML(record)}
+          </div>
+        `;
+      }
+
+      document.body.appendChild(wrapper);
+
+      const target = selectedForm === "clinical"
+        ? wrapper.querySelector(".clinical-print")
+        : wrapper.querySelector(".print-document");
+
+      html2pdf().set({
+        margin: 0.25,
+        filename: `${safeName}_${selectedForm}_Record.pdf`,
+        image: { type: "jpeg", quality: 1 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "in", format: [8.5, 13], orientation: "portrait" },
+        pagebreak: { mode: ["css", "legacy"] }
+      }).from(target).save().then(() => {
+        document.body.removeChild(wrapper);
+      });
+    }
+
+    function plainTextFromHTML(html) {
+      const temp = document.createElement("div");
+      temp.innerHTML = html;
+      return temp.innerText;
+    }
+
+    function downloadSelectedTXT() {
+      const record = getSelectedRecord();
+      if (!record) return alert("Please select a patient first.");
+
+      const safeName = (record.patientName || record.refPatientName || "Patient_Record").replace(/[^a-z0-9]/gi, "_");
+      const text = plainTextFromHTML(buildSelectedHTML(record));
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${safeName}_${selectedForm}_Record.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(url);
+    }
+
+    function deleteSelected() {
+      if (selectedIndex === null) return alert("Please select a patient first.");
+
+      if (!confirm("Delete this complete patient record including all forms?")) return;
+
+      const records = getRecords();
+      records.splice(selectedIndex, 1);
+      saveRecords(records);
+
+      selectedIndex = null;
+      localStorage.removeItem(ACTIVE_KEY);
+      renderPatients();
+      renderPreview();
+    }
+
+    document.getElementById("searchInput").addEventListener("input", renderPatients);
+
+    const activeIndex = localStorage.getItem(ACTIVE_KEY);
+    if (activeIndex !== null) selectedIndex = Number(activeIndex);
+
+    renderPatients();
+    renderPreview();
+  </script>
+</body>
+</html>
